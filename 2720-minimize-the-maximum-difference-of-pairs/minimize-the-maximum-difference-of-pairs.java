@@ -1,31 +1,29 @@
 class Solution {
-    private boolean isPossible(int[] nums, int val, int p) {
-        int count = 0;
-        int i = 1;
-        while (i < nums.length) {
-            if (nums[i] - nums[i - 1] <= val) {
+    private int countValidPairs(int[] nums, int threshold) {
+        int index = 0, count = 0;
+        while(index < nums.length - 1){
+            if(nums[index + 1] - nums[index] <= threshold){
                 count++;
-                i += 2;
-            } else {
-                i++;
+                index++;
             }
+            index++;
         }
-        return count >= p;
+        return count;
     }
 
     public int minimizeMax(int[] nums, int p) {
         Arrays.sort(nums);
-        int low = 0, high = nums[nums.length - 1];
-        int ans = Integer.MAX_VALUE;
-        while (low <= high) {
-            int mid = low + (high - low) / 2;
-            if (isPossible(nums, mid, p)) {
-                ans = mid;
-                high = mid - 1;
-            } else {
-                low = mid + 1;
+        int n = nums.length;
+        int left = 0, right = nums[n-1] - nums[0];
+
+        while(left < right){
+            int mid = left + (right - left) / 2;
+            if(countValidPairs(nums, mid) >= p){
+                right = mid;
+            }else{
+                left = mid + 1;
             }
         }
-        return ans;
+        return left;
     }
 }
