@@ -1,15 +1,30 @@
 class Solution {
     public int minMaxDifference(int num) {
-        String s = Integer.toString(num);
-        String t = s;
-        int pos = 0;
-        while(pos < s.length() && s.charAt(pos) == '9'){
-            pos++;
+        char[] digits = Integer.toString(num).toCharArray();
+        
+        char[] maxDigits = digits.clone();
+        for (int i = 0; i < maxDigits.length; i++) {
+            if (maxDigits[i] != '9') {
+                char target = maxDigits[i];
+                for (int j = 0; j < maxDigits.length; j++) {
+                    if (maxDigits[j] == target) {
+                        maxDigits[j] = '9';
+                    }
+                }
+                break;
+            }
         }
-        if(pos < s.length()){
-            s = s.replace(s.charAt(pos), '9');
+
+        char[] minDigits = digits.clone();
+        char target = minDigits[0];
+        for (int j = 0; j < minDigits.length; j++) {
+            if (minDigits[j] == target) {
+                minDigits[j] = '0';
+            }
         }
-        t = t.replace(t.charAt(0), '0');
-        return Integer.parseInt(s) - Integer.parseInt(t);
+
+        int maxNum = Integer.parseInt(new String(maxDigits));
+        int minNum = Integer.parseInt(new String(minDigits));
+        return maxNum - minNum;
     }
 }
