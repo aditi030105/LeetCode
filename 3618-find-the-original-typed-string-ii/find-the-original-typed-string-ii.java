@@ -16,7 +16,7 @@ class Solution {
         }
         freq.add(count);
 
-        long P = 1;
+        long P = 1; // total possible strings
         for (int f : freq) {
             P = (P * f) % M;
         }
