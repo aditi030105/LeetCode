@@ -1,25 +1,63 @@
-class Solution {
-    public List<List<Integer>> combinationSum(int[] candidates, int target) {
-        List<List<Integer>> result = new ArrayList<>();
-        Arrays.sort(candidates);
-        backtrack(candidates, target, 0, new ArrayList<>(), result);
-        return result;
-    }
+import java.util.AbstractList;
 
-    private void backtrack(int[] candidates, int remain, int start,
-                           List<Integer> path, List<List<Integer>> result) {
-        if (remain == 0) {
-            result.add(new ArrayList<>(path));
+class Solution {
+    public static HashSet<List<Integer>> set = new HashSet<>();
+
+    private static void combinationSum(
+        int[] candidates,
+        int index,
+        List<Integer> list,
+        List<List<Integer>> ans,
+        int target) {
+
+        if (target < 0 || candidates.length == index) {
             return;
         }
-        if (remain < 0) return;
 
-        for (int i = start; i < candidates.length; i++) {
-            int num = candidates[i];
-            if (num > remain) break;
-            path.add(num);
-            backtrack(candidates, remain - num, i, path, result);
-            path.remove(path.size() - 1);
+        if (target == 0) {
+            System.out.println(list);
+            if (!set.contains(list)) {
+                ans.add(new ArrayList<>(list));
+                set.add(new ArrayList<>(list));
+            }
+            return;
         }
+
+        list.add(candidates[index]);
+
+        combinationSum(candidates, index + 1, list, ans, target - candidates[index]);
+        combinationSum(candidates, index, list, ans, target - candidates[index]);
+        list.remove(list.size() - 1);
+        combinationSum(candidates, index + 1, list, ans, target);
+        return;
+    }
+
+    private List<List<Integer>> getResults(int[] candidates, int target) {
+        List<Integer> list = new ArrayList<>();
+        List<List<Integer>> ans = new ArrayList<>();
+        set.clear();
+        combinationSum(candidates, 0, list, ans, target);
+        return ans;
+    }
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        return new AbstractList<List<Integer>>() {
+            List<List<Integer>> ans;
+
+            @Override
+            public int size() {
+                if(ans == null) {
+                    ans = getResults(candidates, target);
+                }
+                return ans.size();
+            }
+
+            @Override
+            public List<Integer> get(int index) {
+                if(ans == null) {
+                    ans = getResults(candidates, target);
+                }
+                return ans.get(index);
+            }
+        };
     }
 }
