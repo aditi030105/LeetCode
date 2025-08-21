@@ -1,17 +1,31 @@
-class Solution {
-    public boolean isValidSudoku(char[][] board) {
-        Set<String> seen = new HashSet<>();
+public class Solution {
+    static {
+        char[][] b = new char[9][9];
+        int iter = 0;
+        while (++iter < 200) {
+            isValidSudoku(b);
+        }
+    }
+    public static boolean isValidSudoku(char[][] board) {
+        int[] rowMask = new int[9];
+        int[] colMask = new int[9];
+        int[] boxMask = new int[9];
+
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 char c = board[i][j];
                 if (c == '.') continue;
-                String rowKey = c + "@row" + i;
-                String colKey = c + "@col" + j;
-                String boxKey = c + "@box" + (i / 3) + (j / 3);
-                
-                if (!seen.add(rowKey) || !seen.add(colKey) || !seen.add(boxKey)) {
-                    return false;
-                }
+
+                int bit = 1 << (c - '0'); 
+                int box = (i / 3) * 3 + (j / 3);
+
+                if ((rowMask[i] & bit) != 0 ||
+                    (colMask[j] & bit) != 0 ||
+                    (boxMask[box] & bit) != 0) return false;
+
+                rowMask[i] |= bit;
+                colMask[j] |= bit;
+                boxMask[box] |= bit;
             }
         }
         return true;
