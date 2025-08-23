@@ -1,83 +1,113 @@
 class Solution {
-    private int[][] rotateClockWise(int[][] grid) {
-        int m = grid.length;
-        int n = grid[0].length;
-        int[][] rotatedGrid = new int[n][m];
-
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                rotatedGrid[j][m - i - 1] = grid[i][j];
-            }
-        }
-        return rotatedGrid;
+    public int minimumSum(int[][] grid) {
+        return Math.min(f(grid), f(rotate(grid)));
     }
 
-    private int minimumArea(int startRow, int endRow, int startCol, int endCol, int[][] grid) {
-        int m = grid.length;
-        int n = grid[0].length;
+    private int f(int[][] a) {
+        int m = a.length;
+        int n = a[0].length;
+        int[][] lr = new int[m][2];
+        for (int i = 0; i < m; i++) {
+            int l = -1;
+            int r = 0;
+            for (int j = 0; j < n; j++) {
+                if (a[i][j] > 0) {
+                    if (l < 0) {
+                        l = j;
+                    }
+                    r = j;
+                }
+            }
+            lr[i][0] = l;
+            lr[i][1] = r;
+        }
 
-        int minRow = m, maxRow = -1, minCol = n, maxCol = -1;
+        int[][] lt = minimumArea(a);
+        a = rotate(a);
+        int[][] lb = rotate(rotate(rotate(minimumArea(a))));
+        a = rotate(a);
+        int[][] rb = rotate(rotate(minimumArea(a)));
+        a = rotate(a);
+        int[][] rt = rotate(minimumArea(a));
 
-        for (int i = startRow; i < endRow; i++) {
-            for (int j = startCol; j < endCol; j++) {
-                if (grid[i][j] == 1) {
-                    minRow = Math.min(minRow, i);
-                    maxRow = Math.max(maxRow, i);
-                    minCol = Math.min(minCol, j);
-                    maxCol = Math.max(maxCol, j);
+        int ans = Integer.MAX_VALUE;
+        if (m >= 3) {
+            for (int i = 1; i < m; i++) {
+                int left = n;
+                int right = 0;
+                int top = m;
+                int bottom = 0;
+                for (int j = i + 1; j < m; j++) {
+                    int l = lr[j - 1][0];
+                    if (l >= 0) {
+                        left = Math.min(left, l);
+                        right = Math.max(right, lr[j - 1][1]);
+                        top = Math.min(top, j - 1);
+                        bottom = j - 1;
+                    }
+                    ans = Math.min(ans, lt[i][n] + (right - left + 1) * (bottom - top + 1) + lb[j][n]);
                 }
             }
         }
 
-        if (maxRow == -1) return 0; // no 1s in this subgrid
-        return (maxRow - minRow + 1) * (maxCol - minCol + 1);
+        if (m >= 2 && n >= 2) {
+            for (int i = 1; i < m; i++) {
+                for (int j = 1; j < n; j++) {
+                    ans = Math.min(ans, lt[i][n] + lb[i][j] + rb[i][j]);
+                    ans = Math.min(ans, lt[i][j] + rt[i][j] + lb[i][n]);
+                }
+            }
+        }
+        return ans;
     }
 
-    private int utility(int[][] grid) {
-        int m = grid.length;
-        int n = grid[0].length;
-        int result = Integer.MAX_VALUE;
-
-        // Case 1: top + bottomLeft + bottomRight
-        for (int rowSplit = 1; rowSplit < m; rowSplit++) {
-            for (int colSplit = 1; colSplit < n; colSplit++) {
-                int top = minimumArea(0, rowSplit, 0, n, grid);
-                int bottomLeft = minimumArea(rowSplit, m, 0, colSplit, grid);
-                int bottomRight = minimumArea(rowSplit, m, colSplit, n, grid);
-
-                result = Math.min(result, top + bottomLeft + bottomRight);
+    private int[][] minimumArea(int[][] a) {
+        int m = a.length;
+        int n = a[0].length;
+        int[][] f = new int[m + 1][n + 1];
+        int[][] border = new int[n][3];
+        for (int j = 0; j < n; j++) {
+            border[j][0] = -1;
+        }
+        for (int i = 0; i < m; i++) {
+            int left = -1;
+            int right = 0;
+            for (int j = 0; j < n; j++) {
+                if (a[i][j] == 1) {
+                    if (left < 0) {
+                        left = j;
+                    }
+                    right = j;
+                }
+                int[] preB = border[j];
+                if (left < 0) {
+                    f[i + 1][j + 1] = f[i][j + 1];
+                } else if (preB[0] < 0) {
+                    f[i + 1][j + 1] = right - left + 1;
+                    border[j][0] = i;
+                    border[j][1] = left;
+                    border[j][2] = right;
+                } else {
+                    int l = Math.min(preB[1], left);
+                    int r = Math.max(preB[2], right);
+                    f[i + 1][j + 1] = (r - l + 1) * (i - preB[0] + 1);
+                    border[j][1] = l;
+                    border[j][2] = r;
+                }
             }
         }
-
-        // Case 2: topLeft + topRight + bottom
-        for (int rowSplit = 1; rowSplit < m; rowSplit++) {
-            for (int colSplit = 1; colSplit < n; colSplit++) {
-                int topLeft = minimumArea(0, rowSplit, 0, colSplit, grid);
-                int topRight = minimumArea(0, rowSplit, colSplit, n, grid);
-                int bottom = minimumArea(rowSplit, m, 0, n, grid);
-
-                result = Math.min(result, topLeft + topRight + bottom);
-            }
-        }
-
-        // Case 3: top + middle + bottom
-        for (int split1 = 1; split1 < m; split1++) {
-            for (int split2 = split1 + 1; split2 < m; split2++) {
-                int top = minimumArea(0, split1, 0, n, grid);
-                int middle = minimumArea(split1, split2, 0, n, grid);
-                int bottom = minimumArea(split2, m, 0, n, grid);
-
-                result = Math.min(result, top + middle + bottom);
-            }
-        }
-
-        return result;
+        return f;
     }
 
-    public int minimumSum(int[][] grid) {
-        int result = utility(grid);
-        int[][] rotatedGrid = rotateClockWise(grid);
-        result = Math.min(result, utility(rotatedGrid));
-        return result;
+    private int[][] rotate(int[][] a) {
+        int m = a.length;
+        int n = a[0].length;
+        int[][] b = new int[n][m];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                b[j][m - 1 - i] = a[i][j];
+            }
+        }
+        return b;
     }
 }
