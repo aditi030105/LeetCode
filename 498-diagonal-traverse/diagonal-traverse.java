@@ -1,38 +1,65 @@
 class Solution {
     public int[] findDiagonalOrder(int[][] mat) {
-        int m = mat.length;
-        int n = mat[0].length;
+        if(mat.length == 1){
+            return mat[0];
+        }
+
+        int total = mat.length*mat[0].length;
+
+        int[] ret = new int[total];
+
+        ret[0] = mat[0][0];
         
-        Map<Integer, List<Integer>> map = new HashMap<>();
-        
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                int key = i + j;
-                map.putIfAbsent(key, new ArrayList<>());
-                map.get(key).add(mat[i][j]);
+        if(mat[0].length == 1){
+            for(int i=1; i<mat.length; i++){
+                ret[i] = mat[i][0];
+            }
+            return ret;
+        }
+
+        int count = 1;
+        int i = 0; int j=1;
+        boolean downLeft = true;
+
+        while(count < total){
+            if(downLeft){
+                while(j>0 && i<mat.length-1){
+                    ret[count] = mat[i][j];
+                    count++;
+                    i++;
+                    j--;
+                }
+
+                ret[count] = mat[i][j];
+                count++;                
+
+                if(i<mat.length-1){
+                    i++;
+                }else{
+                    j++;
+                }
+                downLeft = false;
+            }else{
+                while(i>0 && j<mat[0].length-1){
+                    ret[count] = mat[i][j];
+                    count++;
+                    i--;
+                    j++;
+                }
+
+                ret[count] = mat[i][j];
+                count++;
+
+                if(j<mat[0].length-1){
+                    j++;
+                }else{
+                    i++;
+                }
+
+                downLeft = true;
             }
         }
-        
-        List<Integer> resultList = new ArrayList<>();
-        boolean flip = true;
-        
-        for (int k = 0; k <= m + n - 2; k++) {
-            List<Integer> diagonal = map.get(k);
-            if (diagonal == null) continue;
-            
-            if (flip) {
-                Collections.reverse(diagonal);
-            }
-            resultList.addAll(diagonal);
-            
-            flip = !flip;
-        }
-        
-        int[] result = new int[resultList.size()];
-        for (int i = 0; i < resultList.size(); i++) {
-            result[i] = resultList.get(i);
-        }
-        
-        return result;
+
+        return ret;
     }
 }
