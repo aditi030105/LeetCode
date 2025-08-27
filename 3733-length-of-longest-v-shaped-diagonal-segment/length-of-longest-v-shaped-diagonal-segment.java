@@ -1,65 +1,45 @@
 class Solution {
-    // directions: 4 diagonals
-    int[][] directions = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
-    int m, n;
-    int[][][][] t; // memo table [i][j][direction][canTurn]
-
-    private int solve(int i, int j, int d, int canTurn, int val, int[][] grid) {
-        int i_ = i + directions[d][0];
-        int j_ = j + directions[d][1];
-
-        // Out of bounds or wrong value
-        if (i_ < 0 || i_ >= m || j_ < 0 || j_ >= n || grid[i_][j_] != val) {
-            return 0;
-        }
-
-        if (t[i_][j_][d][canTurn] != -1) {
-            return t[i_][j_][d][canTurn];
-        }
-
-        int nextVal = (val == 2 ? 0 : 2);
-
-        int result = 0;
-
-        // keep moving straight
-        int keepMoving = 1 + solve(i_, j_, d, canTurn, nextVal, grid);
-        result = Math.max(result, keepMoving);
-
-        // try turning once
-        if (canTurn == 1) {
-            int turnAndMove = 1 + solve(i_, j_, (d + 1) % 4, 0, nextVal, grid);
-            result = Math.max(result, turnAndMove);
-        }
-
-        return t[i_][j_][d][canTurn] = result;
-    }
+    private static final int[][] DIRS = { { 1, 1 }, { 1, -1 }, { -1, -1 }, { -1, 1 } };
 
     public int lenOfVDiagonal(int[][] grid) {
-        m = grid.length;
-        n = grid[0].length;
-
-        t = new int[m][n][4][2]; // initialize memo table
+        int m = grid.length;
+        int n = grid[0].length;
+        int[][][] memo = new int[m][n][1 << 3];
+        int ans = 0;
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                for (int d = 0; d < 4; d++) {
-                    for (int c = 0; c < 2; c++) {
-                        t[i][j][d][c] = -1;
+                if (grid[i][j] != 1) {
+                    continue;
+                }
+                int[] maxs = { m - i, j + 1, i + 1, n - j };
+                for (int k = 0; k < 4; k++) {
+                    if (maxs[k] > ans) {
+                        ans = Math.max(ans, dfs(i, j, k, 1, 2, grid, memo) + 1);
                     }
                 }
             }
         }
+        return ans;
+    }
 
-        int result = 0;
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                if (grid[i][j] == 1) {
-                    for (int d = 0; d < 4; d++) {
-                        result = Math.max(result, 1 + solve(i, j, d, 1, 2, grid));
-                    }
-                }
+    private int dfs(int i, int j, int k, int canTurn, int target, int[][] grid, int[][][] memo) {
+        i += DIRS[k][0];
+        j += DIRS[k][1];
+        if (i < 0 || i >= grid.length || j < 0 || j >= grid[i].length || grid[i][j] != target) {
+            return 0;
+        }
+        int mask = k << 1 | canTurn;
+        if (memo[i][j][mask] > 0) {
+            return memo[i][j][mask];
+        }
+        int res = dfs(i, j, k, canTurn, 2 - target, grid, memo);
+        if (canTurn == 1) {
+            int[] maxs = { grid.length - i - 1, j, i, grid[i].length - j - 1 };
+            k = (k + 1) % 4;
+            if (maxs[k] > res) {
+                res = Math.max(res, dfs(i, j, k, 0, 2 - target, grid, memo));
             }
         }
-
-        return result;
+        return memo[i][j][mask] = res + 1;
     }
 }
