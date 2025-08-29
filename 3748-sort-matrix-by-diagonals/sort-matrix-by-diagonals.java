@@ -1,33 +1,48 @@
 class Solution {
-    public int[][] sortMatrix(int[][] grid) {
-        int n = grid.length;
-
-        Map<Integer, List<Integer>> mp = new HashMap<>();
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                int diag = i - j;
-                mp.computeIfAbsent(diag, k -> new ArrayList<>()).add(grid[i][j]);
-            }
+    public int[][] sortMatrix(int[][] mat) {
+        int rows = mat.length;
+        int cols = mat[0].length;
+        
+        for (int row = 0; row < rows; row++) {
+            sortDiagonal(mat, row, 0, false);
         }
 
-        for (Map.Entry<Integer, List<Integer>> entry : mp.entrySet()) {
-            List<Integer> list = entry.getValue();
-            if (entry.getKey() >= 0) {
-                Collections.sort(list);
-            } else {
-                list.sort(Collections.reverseOrder());
-            }
+        for (int col = 1; col < cols; col++) {
+            sortDiagonal(mat, 0, col, true);
         }
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                int diag = i - j;
-                List<Integer> list = mp.get(diag);
-                grid[i][j] = list.remove(list.size() - 1);
-            }
+        return mat;
+    }
+
+    private void sortDiagonal(int[][] mat, int row, int col, boolean increasing) {
+        int rows = mat.length;
+        int cols = mat[0].length;
+        
+        int len = Math.min(rows - row, cols - col);
+        int[] diagonal = new int[len];
+
+        for (int i = 0; i < len; i++) {
+            diagonal[i] = mat[row + i][col + i];
         }
 
-        return grid;
+        Arrays.sort(diagonal);
+
+        if (!increasing) {
+            reverse(diagonal);
+        }
+
+        for (int i = 0; i < len; i++) {
+            mat[row + i][col + i] = diagonal[i];
+        }
+    }
+    private void reverse(int[] arr) {
+        int i = 0, j = arr.length - 1;
+        while (i < j) {
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+            i++;
+            j--;
+        }
     }
 }
