@@ -9,6 +9,6 @@ class Solution {
         if (xSteps < ySteps) {
             return 1;
         }
-        return 2;
+        return 2; 
     }
 }
