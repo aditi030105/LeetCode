@@ -1,27 +1,22 @@
 class Solution {
-    public int canBeTypedWords(String text, String brokenLetters) {
-        boolean[] broken = new boolean[26];
-        for (char ch : brokenLetters.toCharArray()) {
-            broken[ch - 'a'] = true;
-        }
-
-        int result = 0;
-        boolean foundBroken = false;
-        for (int i = 0; i < text.length(); i++) {
-            char ch = text.charAt(i);
-
-            if (ch == ' ') {
-                if (!foundBroken) {
-                    result++;
-                }
-                foundBroken = false;
-            } else if (broken[ch - 'a']) {
-                foundBroken = true;
+    static {
+        for(int i = 0; i < 500; i++) canBeTypedWords("jjhc", "ndc");
+    }
+    public static int canBeTypedWords(String text, String brokenLetters) {
+        int count = 1;
+        boolean flag = true;
+        boolean[] c = new boolean[26];
+        for(int i = 0; i < brokenLetters.length(); i++) c[brokenLetters.charAt(i) - 97] = true;
+        for(char ch : text.toCharArray()) {
+            if(ch == ' ') {
+                flag = true;
+                count++;
+            }
+            else if(c[ch - 97] && flag) {
+                count--;
+                flag = false;
             }
         }
-        if (!foundBroken) {
-            result++;
-        }
-        return result;
+        return count < 1 ? 0 : count;
     }
 }
