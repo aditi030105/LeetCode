@@ -1,84 +1,83 @@
 class Router {
-
-    private int MAX_SIZE;
-    private Map<String, int[]> packetStore;
-    private Map<Integer, ArrayList<Integer>> destTimestamps;
-    private Map<Integer, Integer> startIndex;
-    private Queue<String> que;
-
+    Deque<int[]>que;
+    HashMap<Integer,List<int[]>>map;
+    int size;
     public Router(int memoryLimit) {
-        MAX_SIZE = memoryLimit;
-        packetStore = new HashMap<>();
-        destTimestamps = new HashMap<>();
-        startIndex = new HashMap<>();
-        que = new LinkedList<>();
+        que=new LinkedList<>();
+        map=new HashMap<>();
+        this.size=memoryLimit;
     }
-
-    private String makeKey(int source, int destination, int timestamp) {
-        return source + "#" + destination + "#" + timestamp;
-    }
-
+    
     public boolean addPacket(int source, int destination, int timestamp) {
-        String key = makeKey(source, destination, timestamp);
-
-        if (packetStore.containsKey(key)) return false;
-
-        if (packetStore.size() >= MAX_SIZE) {
+        
+        if(!map.containsKey(destination)){
+            map.put(destination,new ArrayList<>());
+        }
+        List<int[]>list=map.get(destination);
+        int left=small(list,timestamp);
+        
+        if(list.size()!=0){
+            // System.out.println(left);
+            // for(int []a:list)System.out.println(Arrays.toString(a));
+            for(int i=left;i<list.size() && list.get(i)[1]==timestamp;i++){
+                // System.out.println(left);
+                if(list.get(i)[0]==source)return false;
+            }
+        }
+        map.get(destination).add(new int[]{source,timestamp});
+        que.addLast(new int[]{source,destination,timestamp});
+        if(que.size()>size){
             forwardPacket();
         }
-
-        packetStore.put(key, new int[]{source, destination, timestamp});
-        que.offer(key);
-
-        destTimestamps.putIfAbsent(destination, new ArrayList<>());
-        destTimestamps.get(destination).add(timestamp);
-
-        startIndex.putIfAbsent(destination, 0);
-
+        
         return true;
+        
     }
-
+    
     public int[] forwardPacket() {
-        if (packetStore.isEmpty()) return new int[0];
-
-        String key = que.poll();
-        int[] packet = packetStore.get(key);
-        packetStore.remove(key);
-
-        int dest = packet[1];
-        int idx = startIndex.get(dest);
-        startIndex.put(dest, idx + 1);
-        return packet;
+        if(que.size()==0)return new int[0];
+        int[]arr=que.pollFirst();
+        // System.out.println(Arrays.toString(arr));
+        map.get(arr[1]).remove(0);
+        return arr;
     }
-
+    
     public int getCount(int destination, int startTime, int endTime) {
-        if (!destTimestamps.containsKey(destination)) return 0;
-
-        ArrayList<Integer> list = destTimestamps.get(destination);
-        int idx = startIndex.get(destination);
-        int left = lowerBound(list, startTime, idx);
-        int right = upperBound(list, endTime, idx);
-
-        return right - left;
-    }
-
-    private int lowerBound(ArrayList<Integer> list, int target, int startIdx) {
-        int low = startIdx, high = list.size();
-        while (low < high) {
-            int mid = (low + high) / 2;
-            if (list.get(mid) >= target) high = mid;
-            else low = mid + 1;
+        if(!map.containsKey(destination)){
+            return 0;
         }
-        return low;
+        List<int[]>list=map.get(destination);
+        int left=small(list,startTime);
+        int right=big(list,endTime);
+        if(left>right)return 0;
+        return right-left+1;
     }
-
-    private int upperBound(ArrayList<Integer> list, int target, int startIdx) {
-        int low = startIdx, high = list.size();
-        while (low < high) {
-            int mid = (low + high) / 2;
-            if (list.get(mid) > target) high = mid;
-            else low = mid + 1;
+    public int small(List<int[]>list,int start){
+        int left=0;
+        int right=list.size()-1;
+        while(left<=right){
+            int mid=left+(right-left)/2;
+            if(list.get(mid)[1]>=start){
+                right=mid-1;
+            }
+            else{
+                left=mid+1;
+            }
         }
-        return low;
+        return left;
+    }
+    public int big(List<int[]>list,int end){
+        int left=0;
+        int right=list.size()-1;
+        while(left<=right){
+            int mid=left+(right-left)/2;
+            if(list.get(mid)[1]>end){
+                right=mid-1;
+            }
+            else{
+                left=mid+1;
+            }
+        }
+        return right;
     }
 }
