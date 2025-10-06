@@ -1,51 +1,38 @@
 class Solution {
-    private class Entry {
-        int x, y, t;
+  int len;
+final static int[][] dirs = new int[][]{{1,0},{0,1},{-1,0},{0,-1}};
 
-        Entry(int x, int y, int t) {
-            this.x = x;
-            this.y = y;
-            this.t = t;
+public int swimInWater(int[][] grid) {
+    len = grid.length;
+    int left = Math.max(grid[0][0], grid[len - 1][len - 1]), right = len * len - 1, mid, res = 0;
+    while (left <= right) {
+        mid = (left + right) / 2;
+        boolean[] seen = new boolean[len * len];
+        if (dfs(0, 0, grid, mid, seen)) {
+            res = mid;
+            right = mid - 1;
+        } else {
+            left = mid + 1;
         }
     }
-
-    public int swimInWater(int[][] grid) {
-        PriorityQueue<Entry> queue = new PriorityQueue<>((a, b) -> a.t - b.t);
-        queue.offer(new Entry(0, 0, grid[0][0]));
-
-        int n = grid.length;
-        boolean[][] visited = new boolean[n][n];
-
-        int[][] directions = {
-            {-1, 0}, {1, 0}, {0, -1}, {0, 1}
-        };
-
-        while (!queue.isEmpty()) {
-            Entry entry = queue.poll();
-            int x = entry.x;
-            int y = entry.y;
-            int t = entry.t;
-
-            if (x == n - 1 && y == n - 1) {
-                return t;
+    return res;
+}
+public boolean dfs(int xn, int yn, int[][] grid, int mid, boolean[] seen) {
+    int idx = xn * len + yn;
+    if (seen[idx]) return true;
+    seen[idx] = true;
+    for (int i = 0; i < 4; i++) {
+        int newx = xn + dirs[i][0], newy = yn + dirs[i][1];
+        if (newx >= 0 && newx < len && newy >= 0
+                && newy < len && !seen[newx * len + newy] && grid[newx][newy] <= mid) {
+            if (newx == len - 1 && newy == len - 1) {
+                return true;
             }
-
-            visited[x][y] = true;
-
-            for (int[] dir : directions) {
-                int nx = x + dir[0];
-                int ny = y + dir[1];
-
-                if (isValid(nx, ny, n) && !visited[nx][ny]) {
-                    queue.offer(new Entry(nx, ny, Math.max(t, grid[nx][ny])));
-                }
+            if (dfs(newx, newy, grid, mid, seen)) {
+                return true;
             }
         }
-
-        return 0;
     }
-
-    private boolean isValid(int x, int y, int n) {
-        return x >= 0 && x < n && y >= 0 && y < n;
-    }
+    return false;
+}
 }
