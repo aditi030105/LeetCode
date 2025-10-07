@@ -1,28 +1,31 @@
 class Solution {
     public int[] avoidFlood(int[] rains) {
-        int n = rains.length;
-        Map<Integer, Integer> map = new HashMap<>();
-        TreeSet<Integer> dryDays = new TreeSet<>();
-        int[] ans = new int[n];
-        Arrays.fill(ans, 1);
-        for (int i = 0; i < n; i++) {
-            int lake = rains[i];
+        int N = rains.length;
+        int[] ans = new int[N];
 
-            if (lake == 0) {
-                dryDays.add(i);
-            } else {
-                ans[i] = -1;
-                if (map.containsKey(lake)) {
-                    Integer dryDay = dryDays.higher(map.get(lake));
-                    if (dryDay == null) {
-                        return new int[0];
-                    }
-                    ans[dryDay] = lake;
-                    dryDays.remove(dryDay);
+        Map<Integer, Integer> fullMap = new HashMap<>();
+
+        TreeSet<Integer> zeroSet = new TreeSet<>();
+        for ( int ii = 0; ii < N; ii++ ) {
+            int lake = rains[ii];
+            if ( lake == 0 ) {
+                zeroSet.add(ii);
+                ans[ii] = 1;
+            }
+            else {
+                ans[ii] = -1;
+
+                Integer idx = fullMap.get(lake);
+                if ( idx != null ) {
+                    Integer zeroIdx = zeroSet.ceiling(idx);
+                    if ( zeroIdx == null ) return new int[0];
+                    zeroSet.remove(zeroIdx);
+                    ans[zeroIdx] = lake;
                 }
-                map.put(lake, i);
+                fullMap.put(lake, ii);
             }
         }
+
         return ans;
     }
 }
